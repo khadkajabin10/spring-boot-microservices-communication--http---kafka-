@@ -20,7 +20,7 @@ public class CustomerApplication {
 			//This is a lambda expression. It contains the code that runs when Spring Boot starts.
 			kafkaTemplate.send(
 					"customer-registered",
-					"Hello Kafka!"
+					"Hello how are you!"
 			);
 
 			System.out.println("Message sent to Kafka!");
