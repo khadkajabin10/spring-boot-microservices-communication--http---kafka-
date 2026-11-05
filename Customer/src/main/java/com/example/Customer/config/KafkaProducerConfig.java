@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,22 +51,22 @@ public class KafkaProducerConfig {
 // value from a Java object (String) into bytes.
        //here converted into String since  StringSerializer.class
         config.put(
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class
+                //JsonSerializer converts a Java object into JSON and then into bytes.
         );
 
         return config;
     }
 
     @Bean//@Bean    Tells Spring to manage the object returned by this method as a Spring bean.
-    public ProducerFactory<String, String> producerFactory() {//ProducerFactory is an interface provided by Spring Kafka that is responsible for creating Kafka producers.
+    public ProducerFactory<String, Object> producerFactory() {//ProducerFactory is an interface provided by Spring Kafka that is responsible for creating Kafka producers.
         return new DefaultKafkaProducerFactory<>(producerConfig());
         //DefaultKafkaProducerFactory
         // It creates Kafka producer instances using the configuration we provide.
     }
 
     @Bean
-    public KafkaTemplate<String, String> kafkaTemplate() {
+    public KafkaTemplate<String, Object> kafkaTemplate() {
         //KafkaTemplate is a Spring Kafka class that provides convenient methods for sending messages to Kafka.
         return new KafkaTemplate<>(producerFactory());
     }/*
