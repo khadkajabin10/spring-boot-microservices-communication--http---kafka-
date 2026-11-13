@@ -1,5 +1,6 @@
 package com.example.fraud.config;
 
+import com.example.fraud.event.CustomerRegisteredEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +10,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,8 +44,25 @@ public class KafkaConsumerConfig {
 
         config.put(
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class
+                JacksonJsonDeserializer.class
         );
+        //We want Fraud to use its own CustomerRegisteredEvent class  which is inside fraud instead of customer so below config.
+        config.put(
+                JacksonJsonDeserializer.VALUE_DEFAULT_TYPE,
+                CustomerRegisteredEvent.class.getName()
+        );
+
+        config.put(
+                JacksonJsonDeserializer.USE_TYPE_INFO_HEADERS,
+                false
+        );
+        //VALUE_DEFAULT_TYPE: Tells Fraud which Java class to create from the incoming JSON.
+        //USE_TYPE_INFO_HEADERS = false: Tells Fraud to ignore the producer's class information
+        // in the Kafka headers and use its own configured class instead.
+        config.put(
+                JacksonJsonDeserializer.TRUSTED_PACKAGES,
+                "com.example.fraud.event"
+        );//This tells the deserializer to trust the package containing our event class when resolving the JSON type information.
 
         config.put(
                 ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
@@ -62,15 +81,15 @@ public class KafkaConsumerConfig {
     */
 
     @Bean
-    public ConsumerFactory<String, String> consumerFactory() {
+    public ConsumerFactory<String, CustomerRegisteredEvent> consumerFactory() {
         return new DefaultKafkaConsumerFactory<>(consumerConfig());
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String>
+    public ConcurrentKafkaListenerContainerFactory<String, CustomerRegisteredEvent>
     kafkaListenerContainerFactory() {
 
-        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+        ConcurrentKafkaListenerContainerFactory<String, CustomerRegisteredEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory());
