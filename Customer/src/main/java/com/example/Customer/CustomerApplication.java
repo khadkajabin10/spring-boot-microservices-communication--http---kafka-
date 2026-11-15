@@ -12,6 +12,7 @@ public class CustomerApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(CustomerApplication.class, args);
 	}
+	/*
 	@Bean
 	public CommandLineRunner commandLineRunner(	KafkaTemplate<String, String> kafkaTemplate) {
 //It is a Spring Boot interface that allows us to execute code automatically after the application starts.
@@ -26,5 +27,5 @@ public class CustomerApplication {
 			System.out.println("Message sent to Kafka!");
 		};
 	}
-
+*/
 }

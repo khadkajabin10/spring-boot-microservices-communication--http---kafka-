@@ -9,9 +9,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
+import com.example.Customer.event.CustomerRegisteredEvent;
 @Slf4j
 @Service
 @AllArgsConstructor
@@ -19,6 +21,7 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final ModelMapper modelMapper;
     private final RestTemplate restTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     public void registerCustomer(CustomerDto customerDto) {
         Customer customer= Customer.builder()
                 .firstname(customerDto.getFirstname())
@@ -26,8 +29,34 @@ public class CustomerService {
                 .email(customerDto.getEmail())
                 .build();
         customerRepository.saveAndFlush(customer);
+        //now we will create event and publish event to kafka
+        CustomerRegisteredEvent event = new CustomerRegisteredEvent(
+                customer.getId(),
+                customer.getFirstname(),
+                customer.getLastname(),
+                customer.getEmail()
+        );//When we call saveAndFlush(customer),
+        // MySQL saves the customer and generates its ID.
+        // We can then retrieve that ID using customer.getId().
+        kafkaTemplate.send(
+                "customer-registered",
+                event
+        );//Publish the event to Kafka
+        /*Customer Service
+
+    kafkaTemplate.send("customer-registered", event)
+
+    Kafka Broker
+
+    Topic: customer-registered
+
+    Fraud Service Kafka Consumer
+
+    @KafkaListener
+
+    Your consume() method*/
         //todo check if fraudter
-        FraudCheckResponsedto fraudCheckResponse=restTemplate.getForObject(
+       /* FraudCheckResponsedto fraudCheckResponse=restTemplate.getForObject(
                 "http://localhost:8081/api/v1/fraudCheck/{customerId}",
                 FraudCheckResponsedto.class,//yo class ho respose of this http respest
                 customer.getId()//mathi insert vako object ko id
@@ -51,7 +80,7 @@ public class CustomerService {
                 customer.getId());
 
         log.info("Customer registration completed successfully");
-
+*/
 
 
     }
